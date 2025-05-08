@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>贪吃蛇游戏</title>
     <style>
         body {
@@ -16,11 +16,18 @@
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             font-family: 'Microsoft YaHei', sans-serif;
             color: white;
+            touch-action: none;
         }
         .game-container {
             position: relative;
+            width: 100%;
+            max-width: 500px;
+            padding: 1rem;
         }
         canvas {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
             border: 2px solid #fff;
             border-radius: 5px;
             box-shadow: 0 0 20px rgba(0,0,0,0.2);
@@ -40,6 +47,7 @@
             padding: 2rem;
             border-radius: 10px;
             text-align: center;
+            z-index: 100;
         }
         .restart-button {
             background: #4CAF50;
@@ -64,9 +72,46 @@
             border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
+            z-index: 10;
         }
         .back-button:hover {
             background: rgba(255,255,255,0.3);
+        }
+        .controls {
+            display: none;
+            margin-top: 2rem;
+            width: 100%;
+            max-width: 300px;
+        }
+        .control-row {
+            display: flex;
+            justify-content: center;
+            margin: 0.5rem 0;
+        }
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 10px;
+            margin: 0 0.5rem;
+            color: white;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+        }
+        .control-btn:active {
+            background: rgba(255,255,255,0.3);
+        }
+        @media (max-width: 768px) {
+            .controls {
+                display: block;
+            }
+            .game-container {
+                padding-bottom: 0;
+            }
         }
     </style>
 </head>
@@ -81,11 +126,36 @@
             <button class="restart-button" onclick="restartGame()">重新开始</button>
         </div>
     </div>
+    <div class="controls">
+        <div class="control-row">
+            <button class="control-btn" id="upBtn">↑</button>
+        </div>
+        <div class="control-row">
+            <button class="control-btn" id="leftBtn">←</button>
+            <button class="control-btn" id="rightBtn">→</button>
+        </div>
+        <div class="control-row">
+            <button class="control-btn" id="downBtn">↓</button>
+        </div>
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const gridSize = 20;
         const tileCount = canvas.width / gridSize;
+        
+        // 设置canvas的实际大小
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const containerWidth = container.clientWidth - 2; // 减去padding
+            const scale = containerWidth / canvas.width;
+            canvas.style.width = containerWidth + 'px';
+            canvas.style.height = (canvas.height * scale) + 'px';
+        }
+        
+        // 初始化时调整canvas大小
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
         
         let snake = [
             {x: 10, y: 10}
@@ -96,7 +166,46 @@
         let score = 0;
         let gameOver = false;
         
+        // 键盘控制
         document.addEventListener('keydown', changeDirection);
+        
+        // 触摸控制
+        const upBtn = document.getElementById('upBtn');
+        const downBtn = document.getElementById('downBtn');
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        
+        upBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (dy !== 1) {
+                dx = 0;
+                dy = -1;
+            }
+        });
+        
+        downBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (dy !== -1) {
+                dx = 0;
+                dy = 1;
+            }
+        });
+        
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (dx !== 1) {
+                dx = -1;
+                dy = 0;
+            }
+        });
+        
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (dx !== -1) {
+                dx = 1;
+                dy = 0;
+            }
+        });
         
         function changeDirection(event) {
             const LEFT_KEY = 37;
